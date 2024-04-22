@@ -1,0 +1,14 @@
+version: '3.8'
+services:
+  mongodb:
+    image: mongo:latest
+    ports:
+      - '27017:27017'
+    # volumes:
+    #   - dbdata6:/data/db
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: test_db
+      MONGO_INITDB_ROOT_PASSWORD: test_db
+      MONGO_INITDB_DATABASE: test_db
+# volumes:
+#   dbdata6:
