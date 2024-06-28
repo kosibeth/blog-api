@@ -1,3 +1,5 @@
+import Joi from 'joi'
+import mcache from 'memory-cache';
 import Article from "../models/article.js"
 import { errorJson } from '../error.js';
 
@@ -16,6 +18,7 @@ export const getAllBlogs = async (req, res) => {
   }
 };
 
+const CACHE_DURATION_MS = 10 * 60 * 1000
 
 export const getAllUserBlogs = async (req, res) => {
   try {
@@ -23,8 +26,19 @@ export const getAllUserBlogs = async (req, res) => {
 
     const page = req.query?.page ?? 1;
     const skip =  (NUMBER_OF_BLOGS_PER_PAGE * page) - NUMBER_OF_BLOGS_PER_PAGE;
+
+    const cacheKey = `${user._id}-${page}`
+
+    const cachedResponse = mcache.get(cacheKey);
+
+    if (cachedResponse) {
+      res.json(cachedResponse) 
+      return 
+    }
   
     const articles = await Article.find({ author: user._id }).skip(skip).limit(NUMBER_OF_BLOGS_PER_PAGE).exec();
+  
+    mcache.put(cacheKey, articles, CACHE_DURATION_MS);
   
     res.json(articles) 
   } catch (error) {
@@ -49,6 +63,14 @@ export const getArticle = async (req, res) => {
   }
 };
 
+
+export const CreateArticleSchema = Joi.object({
+  title: Joi.string().email().required(),
+  description: Joi.string(),
+  tags: Joi.array().items(Joi.string()),
+  body: Joi.string().required()
+});
+
 export const createArticle = async (req, res) => {
   try {
     const { user } = req;
@@ -69,6 +91,14 @@ export const createArticle = async (req, res) => {
     return errorJson(res, error)
   }
 };
+
+export const EditArticleSchema = Joi.object({
+  title: Joi.string().email(),
+  description: Joi.string(),
+  tags: Joi.array().items(Joi.string()),
+  body: Joi.string()
+});
+
 
 export const editArticle = async (req, res) => {
   try {

@@ -1,6 +1,8 @@
 import jwt from "jsonwebtoken"
+import Joi from 'joi'
 import User from "../models/user.js"
 import { env } from '../env.js';
+
 
 export const login = async (req, res) => {
   try {
@@ -17,6 +19,14 @@ export const login = async (req, res) => {
     return errorJson(res, error)
   }
 };
+
+
+export const RegisterSchema = Joi.object({
+  email: Joi.string().email().required(),
+  password: Joi.string().required(),
+  first_name: Joi.string().required(),
+  last_name: Joi.string().required()
+});
 
 export const register = async (req, res) => {
   try {
